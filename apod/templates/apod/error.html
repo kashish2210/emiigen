@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Required - APOD Explorer{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-container {
+    max-width: 800px;
+    margin: 100px auto;
+    padding: 40px;
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.error-title {
+    font-size: 2rem;
+    color: var(--soft-yellow);
+    margin-bottom: 20px;
+}
+
+.error-message {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.setup-steps {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setup-steps h3 {
+    color: var(--soft-yellow);
+    margin-bottom: 20px;
+}
+
+.step {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border-left: 3px solid var(--nasa-blue);
+}
+
+.step-number {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background: var(--nasa-blue);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 30px;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.code-block {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    color: var(--terminal-green);
+    margin-top: 10px;
+    overflow-x: auto;
+}
+
+.refresh-btn {
+    margin-top: 30px;
+    padding: 15px 40px;
+    background: var(--nasa-blue);
+    border: 2px solid var(--soft-yellow);
+    color: white;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.refresh-btn:hover {
+    background: var(--soft-yellow);
+    color: var(--deep-space);
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h1 class="error-title">Setup Required</h1>
+    <p class="error-message">
+        {{ error }}
+    </p>
+    
+    <div class="setup-steps">
+        <h3>Quick Setup Guide</h3>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>Open your terminal in the project directory</strong>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>Fetch a recent APOD (use a date from 2024 or early 2025):</strong>
+            <div class="code-block">python manage.py fetch_apod --date 2024-12-01</div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>Or backfill historical data (recommended - 30 days):</strong>
+            <div class="code-block">python manage.py fetch_apod --backfill --days 30</div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>Populate celestial coordinates:</strong>
+            <div class="code-block">python manage.py populate_coordinates</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: rgba(255, 165, 0, 0.1); border-radius: 8px; border-left: 3px solid var(--terminal-orange);">
+        <strong>Note:</strong> NASA's APOD API only provides data up to the current real date. 
+        If you're seeing this error, the system date might be set incorrectly, or you need to fetch historical data.
+    </div>
+    
+    <a href="/" class="refresh-btn" onclick="window.location.reload()">Refresh Page</a>
+</div>
+{% endblock %}

@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+
+{% block title %}Terminal - APOD Explorer{% endblock %}
+
+{% block extra_css %}
+<style>
+.terminal-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.terminal-window {
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-titlebar {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.terminal-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-dot.red { background: #ff5f56; }
+.terminal-dot.yellow { background: #ffbd2e; }
+.terminal-dot.green { background: #27c93f; }
+
+.terminal-title {
+    font-family: 'Courier New', monospace;
+    color: var(--terminal-green);
+    font-size: 14px;
+}
+
+.terminal-content {
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: var(--terminal-green);
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.terminal-output {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.terminal-prompt {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.prompt-symbol {
+    color: var(--soft-yellow);
+    margin-right: 10px;
+}
+
+.terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--terminal-green);
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+}
+
+.command-success {
+    color: var(--terminal-green);
+}
+
+.command-error {
+    color: var(--terminal-red);
+}
+
+.command-warning {
+    color: var(--terminal-orange);
+}
+
+.command-info {
+    color: var(--nasa-blue);
+}
+
+.suggestions-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.suggestions-title {
+    color: var(--soft-yellow);
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.command-example {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--nasa-blue);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.command-example:hover {
+    background: rgba(0, 0, 0, 0.7);
+    border-left-color: var(--soft-yellow);
+    transform: translateX(5px);
+}
+
+.command-text {
+    color: var(--terminal-green);
+    font-family: 'Courier New', monospace;
+    margin-bottom: 5px;
+}
+
+.command-desc {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    border-top-color: var(--terminal-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--terminal-green);
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terminal-page">
+    <div class="suggestions-box">
+        <h3 class="suggestions-title">Available Commands</h3>
+        
+        <div class="command-example" onclick="runCommand('fetch 2023-10-04')">
+            <div class="command-text">fetch 2023-10-04</div>
+            <div class="command-desc">Fetch APOD for a specific date</div>
+        </div>
+        
+        <div class="command-example" onclick="runCommand('backfill 30')">
+            <div class="command-text">backfill 30</div>
+            <div class="command-desc">Fetch last 30 days of APOD images</div>
+        </div>
+        
+        <div class="command-example" onclick="runCommand('fetch yesterday')">
+            <div class="command-text">fetch yesterday</div>
+            <div class="command-desc">Fetch yesterday's APOD</div>
+        </div>
+        
+        <div class="command-example" onclick="runCommand('coordinates')">
+            <div class="command-text">coordinates</div>
+            <div class="command-desc">Populate celestial coordinates database</div>
+        </div>
+        
+        <div class="command-example" onclick="runCommand('status')">
+            <div class="command-text">status</div>
+            <div class="command-desc">Show database statistics</div>
+        </div>
+        
+        <div class="command-example" onclick="runCommand('help')">
+            <div class="command-text">help</div>
+            <div class="command-desc">Show all available commands</div>
+        </div>
+    </div>
+    
+    <div class="terminal-window">
+        <div class="terminal-titlebar">
+            <div class="terminal-controls">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+            </div>
+            <div class="terminal-title">APOD Management Terminal</div>
+            <div style="width: 60px;"></div>
+        </div>
+        
+        <div class="terminal-content" id="terminalContent">
+            <div class="terminal-output">
+                <span class="command-info">APOD Explorer Terminal v1.0</span><br>
+                <span class="command-success">Type 'help' for available commands</span><br>
+                <span style="color: rgba(255,255,255,0.5);">─────────────────────────────────────────</span>
+            </div>
+            
+            <div class="terminal-prompt">
+                <span class="prompt-symbol">apod@explorer:~$</span>
+                <input 
+                    type="text" 
+                    class="terminal-input" 
+                    id="terminalInput"
+                    placeholder="Enter command..."
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const terminalInput = document.getElementById('terminalInput');
+const terminalContent = document.getElementById('terminalContent');
+let commandHistory = [];
+let historyIndex = -1;
+
+terminalInput.focus();
+
+terminalInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const command = this.value.trim();
+        if (command) {
+            executeCommand(command);
+            commandHistory.unshift(command);
+            historyIndex = -1;
+            this.value = '';
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            this.value = commandHistory[historyIndex];
+        }
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+            historyIndex--;
+            this.value = commandHistory[historyIndex];
+        } else {
+            historyIndex = -1;
+            this.value = '';
+        }
+    }
+});
+
+function addOutput(text, className = '') {
+    const output = document.createElement('div');
+    output.className = `terminal-output ${className}`;
+    output.innerHTML = text;
+    
+    const prompt = terminalContent.querySelector('.terminal-prompt');
+    terminalContent.insertBefore(output, prompt);
+    terminalContent.scrollTop = terminalContent.scrollHeight;
+}
+
+function runCommand(cmd) {
+    terminalInput.value = cmd;
+    terminalInput.focus();
+    executeCommand(cmd);
+    terminalInput.value = '';
+}
+
+async function executeCommand(command) {
+    addOutput(`<span class="prompt-symbol">apod@explorer:~$</span> ${command}`);
+    
+    const parts = command.toLowerCase().split(' ');
+    const cmd = parts[0];
+    const args = parts.slice(1);
+    
+    switch(cmd) {
+        case 'help':
+            showHelp();
+            break;
+        
+        case 'fetch':
+            if (args.length === 0) {
+                addOutput('Error: Please specify a date (YYYY-MM-DD) or "yesterday"', 'command-error');
+            } else {
+                await fetchAPOD(args[0]);
+            }
+            break;
+        
+        case 'backfill':
+            const days = parseInt(args[0]) || 7;
+            await backfillAPOD(days);
+            break;
+        
+        case 'coordinates':
+            await populateCoordinates();
+            break;
+        
+        case 'status':
+            await showStatus();
+            break;
+        
+        case 'clear':
+            clearTerminal();
+            break;
+        
+        default:
+            addOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'command-error');
+    }
+}
+
+function showHelp() {
+    const helpText = `
+<span class="command-info">Available Commands:</span>
+<span class="command-success">  fetch [date]</span>       Fetch APOD for specific date (YYYY-MM-DD)
+<span class="command-success">  fetch yesterday</span>    Fetch yesterday's APOD
+<span class="command-success">  backfill [days]</span>    Fetch multiple days (default: 7)
+<span class="command-success">  coordinates</span>        Populate celestial coordinates
+<span class="command-success">  status</span>             Show database statistics
+<span class="command-success">  clear</span>              Clear terminal
+<span class="command-success">  help</span>               Show this help message
+`;
+    addOutput(helpText);
+}
+
+async function fetchAPOD(date) {
+    addOutput('<span class="loading-spinner"></span> Fetching APOD data...', 'command-info');
+    
+    try {
+        const response = await fetch('/api/terminal/fetch/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ date: date })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            addOutput(`✓ ${data.message}`, 'command-success');
+            addOutput(`  Title: ${data.title}`, 'command-info');
+            addOutput(`  Date: ${data.date}`, 'command-info');
+        } else {
+            addOutput(`✗ ${data.error}`, 'command-error');
+        }
+    } catch (error) {
+        addOutput(`✗ Error: ${error.message}`, 'command-error');
+    }
+}
+
+async function backfillAPOD(days) {
+    addOutput(`<span class="loading-spinner"></span> Backfilling ${days} days of APOD data...`, 'command-info');
+    
+    try {
+        const response = await fetch('/api/terminal/backfill/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ days: days })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            addOutput(`✓ Successfully fetched ${data.count}/${days} images`, 'command-success');
+            data.results.forEach(result => {
+                if (result.success) {
+                    addOutput(`  ✓ ${result.date}: ${result.title}`, 'command-success');
+                } else {
+                    addOutput(`  ✗ ${result.date}: ${result.error}`, 'command-warning');
+                }
+            });
+        } else {
+            addOutput(`✗ ${data.error}`, 'command-error');
+        }
+    } catch (error) {
+        addOutput(`✗ Error: ${error.message}`, 'command-error');
+    }
+}
+
+async function populateCoordinates() {
+    addOutput('<span class="loading-spinner"></span> Populating celestial coordinates...', 'command-info');
+    
+    try {
+        const response = await fetch('/api/terminal/populate-coordinates/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            addOutput(`✓ Created ${data.count} celestial coordinates`, 'command-success');
+        } else {
+            addOutput(`✗ ${data.error}`, 'command-error');
+        }
+    } catch (error) {
+        addOutput(`✗ Error: ${error.message}`, 'command-error');
+    }
+}
+
+async function showStatus() {
+    addOutput('<span class="loading-spinner"></span> Fetching status...', 'command-info');
+    
+    try {
+        const response = await fetch('/api/terminal/status/');
+        const data = await response.json();
+        
+        addOutput(`<span class="command-info">Database Statistics:</span>
+  Total APOD Images: ${data.total_images}
+  Latest Date: ${data.latest_date || 'None'}
+  Oldest Date: ${data.oldest_date || 'None'}
+  Coordinates: ${data.total_coordinates}
+  System Logs: ${data.total_logs}`);
+    } catch (error) {
+        addOutput(`✗ Error: ${error.message}`, 'command-error');
+    }
+}
+
+function clearTerminal() {
+    const prompt = terminalContent.querySelector('.terminal-prompt');
+    terminalContent.innerHTML = '';
+    terminalContent.appendChild(prompt);
+    addOutput('<span class="command-info">Terminal cleared</span>');
+}
+
+function getCookie(name) {
+    // First try to get from meta tag
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag && name === 'csrftoken') {
+        return metaTag.content;
+    }
+    
+    // Fallback to cookie
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
