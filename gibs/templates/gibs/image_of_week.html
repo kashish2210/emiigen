@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Worldview Image of the Week{% endblock %}
+
+{% block extra_css %}
+<style>
+.week-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.week-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.week-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--soft-yellow), var(--nasa-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.week-header p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.nav-btn {
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--star-white);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--soft-yellow);
+    transform: translateX(-2px);
+}
+
+.nav-btn.next:hover {
+    transform: translateX(2px);
+}
+
+.current-month {
+    font-size: 24px;
+    font-weight: 600;
+    min-width: 200px;
+    text-align: center;
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.image-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(11, 61, 145, 0.3);
+    border-color: var(--nasa-blue);
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 66.67%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--deep-space), var(--cosmic-gray));
+}
+
+.image-wrapper img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.image-card:hover .image-wrapper img {
+    transform: scale(1.05);
+}
+
+.image-date-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--soft-yellow);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.image-content {
+    padding: 20px;
+}
+
+.image-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--star-white);
+    line-height: 1.4;
+}
+
+.image-description {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.image-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.meta-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--soft-yellow);
+}
+
+.no-images {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+}
+
+.no-images-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    opacity: 0.3;
+}
+
+.no-images h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.no-images p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+    .week-header h1 {
+        font-size: 28px;
+    }
+    
+    .calendar-nav {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .images-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .current-month {
+        font-size: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="week-container">
+    <div class="week-header">
+        <h1>Worldview Image of the Week</h1>
+        <p>Discover Earth from space through weekly satellite imagery highlights</p>
+    </div>
+    
+    <div class="calendar-nav">
+        <a href="?year={{ prev_month.year }}&month={{ prev_month.month }}" class="nav-btn prev">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Previous
+        </a>
+        
+        <div class="current-month">
+            {{ current_year }} - {% if current_month == 1 %}January{% elif current_month == 2 %}February{% elif current_month == 3 %}March{% elif current_month == 4 %}April{% elif current_month == 5 %}May{% elif current_month == 6 %}June{% elif current_month == 7 %}July{% elif current_month == 8 %}August{% elif current_month == 9 %}September{% elif current_month == 10 %}October{% elif current_month == 11 %}November{% else %}December{% endif %}
+        </div>
+        
+        <a href="?year={{ next_month.year }}&month={{ next_month.month }}" class="nav-btn next">
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </a>
+    </div>
+    
+    {% if images %}
+    <div class="images-grid">
+        {% for image in images %}
+        <a href="{% url 'gibs:image_detail' image.pk %}" class="image-card">
+            <div class="image-wrapper">
+                <img src="{{ image.thumbnail_url|default:image.image_url }}" alt="{{ image.title }}" loading="lazy">
+                <div class="image-date-badge">
+                    {{ image.published_date|date:"M d, Y" }}
+                </div>
+            </div>
+            
+            <div class="image-content">
+                <h3 class="image-title">{{ image.title }}</h3>
+                <p class="image-description">{{ image.description|truncatewords:30 }}</p>
+                
+                <div class="image-meta">
+                    {% if image.location %}
+                    <div class="meta-item">
+                        <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        {{ image.location }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if image.satellite %}
+                    <div class="meta-item">
+                        <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 2a7 7 0 1 0 10 10"></path>
+                        </svg>
+                        {{ image.satellite }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-images">
+        <svg class="no-images-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+        <h3>No Images Available</h3>
+        <p>There are no images for this month. Try another month.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.image-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        if (!e.target.closest('a')) {
+            window.location.href = this.href;
+        }
+    });
+});
+</script>
+{% endblock %}

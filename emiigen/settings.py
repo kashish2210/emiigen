@@ -125,7 +125,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-NASA_API_KEY = 'es9aMGyrIKae9wcgTKkUwLAqJo974s9krl8qzaG8'
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
+
+# Access the key
+NASA_API_KEY = os.getenv('NASA_API_KEY')
 NASA_APOD_URL = 'https://api.nasa.gov/planetary/apod'
 
 # Celery Configuration for scheduled tasks

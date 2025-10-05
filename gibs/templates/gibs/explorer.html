@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}GIBS Explorer - NASA Imagery{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+.explorer-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 200px);
+    gap: 20px;
+}
+
+.explorer-header {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.title-section h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    background: linear-gradient(135deg, var(--soft-yellow), var(--nasa-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.title-section p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.controls-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.date-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+.date-picker label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.date-picker input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--star-white);
+    font-size: 14px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--star-white);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--soft-yellow);
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--nasa-blue), var(--nebula-purple));
+    border-color: var(--nasa-blue);
+}
+
+.map-viewer {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    min-height: 0;
+}
+
+.layers-panel {
+    width: 300px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.panel-header {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--soft-yellow);
+    margin-bottom: 10px;
+}
+
+.layer-search {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--star-white);
+    font-size: 14px;
+}
+
+.layer-search:focus {
+    outline: none;
+    border-color: var(--soft-yellow);
+}
+
+.layer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.layer-item {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.layer-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--soft-yellow);
+}
+
+.layer-item.active {
+    background: rgba(11, 61, 145, 0.3);
+    border-color: var(--nasa-blue);
+}
+
+.layer-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.layer-category {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.map-container {
+    flex: 1;
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+.map-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.coord-display {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: var(--terminal-green);
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--soft-yellow);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .explorer-container {
+        height: auto;
+    }
+    
+    .map-viewer {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .layers-panel {
+        width: 100%;
+        max-height: 300px;
+    }
+    
+    .map-container {
+        height: 500px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="explorer-container">
+    <div class="explorer-header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1>GIBS Explorer</h1>
+                <p>Explore NASA's Global Imagery Browse Services</p>
+            </div>
+            
+            <div class="controls-section">
+                <div class="date-picker">
+                    <label for="date-input">Date:</label>
+                    <input type="date" id="date-input" value="{{ default_date|date:'Y-m-d' }}">
+                </div>
+                
+                <button class="btn" id="reset-view">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    Reset View
+                </button>
+                
+                <button class="btn btn-primary" id="save-config">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Config
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="map-viewer">
+        <div class="layers-panel">
+            <div class="panel-header">Available Layers</div>
+            
+            <input type="text" class="layer-search" id="layer-search" placeholder="Search layers...">
+            
+            <div class="layer-list" id="layer-list">
+                <div class="layer-item" data-layer="VIIRS_SNPP_CorrectedReflectance_TrueColor">
+                    <div class="layer-title">VIIRS True Color</div>
+                    <div class="layer-category">Corrected Reflectance</div>
+                </div>
+                
+                <div class="layer-item" data-layer="MODIS_Terra_CorrectedReflectance_TrueColor">
+                    <div class="layer-title">MODIS Terra True Color</div>
+                    <div class="layer-category">Corrected Reflectance</div>
+                </div>
+                
+                <div class="layer-item" data-layer="MODIS_Aqua_CorrectedReflectance_TrueColor">
+                    <div class="layer-title">MODIS Aqua True Color</div>
+                    <div class="layer-category">Corrected Reflectance</div>
+                </div>
+                
+                <div class="layer-item" data-layer="VIIRS_NOAA20_CorrectedReflectance_TrueColor">
+                    <div class="layer-title">VIIRS NOAA-20 True Color</div>
+                    <div class="layer-category">Corrected Reflectance</div>
+                </div>
+                
+                <div class="layer-item" data-layer="BlueMarble_NextGeneration">
+                    <div class="layer-title">Blue Marble</div>
+                    <div class="layer-category">Reference</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <div class="map-controls">
+                <div class="coord-display" id="coord-display">
+                    Lat: 0.0000°, Lon: 0.0000°
+                </div>
+            </div>
+            
+            <div class="loading-overlay" id="loading-overlay" style="display: none;">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// Initialize map
+const map = L.map('map', {
+    center: [0, 0],
+    zoom: 2,
+    minZoom: 1,
+    maxZoom: 9
+});
+
+// Current active layer
+let currentLayer = null;
+let currentLayerId = 'VIIRS_SNPP_CorrectedReflectance_TrueColor';
+let currentDate = document.getElementById('date-input').value;
+
+// GIBS tile layer function
+function createGIBSLayer(layerId, date) {
+    const template = `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/${layerId}/default/${date}/250m/{z}/{y}/{x}.jpg`;
+    
+    return L.tileLayer(template, {
+        attribution: 'NASA EOSDIS GIBS',
+        bounds: [[-85.0511287776, -179.999], [85.0511287776, 179.999]],
+        minZoom: 1,
+        maxZoom: 9,
+        tileSize: 256,
+        noWrap: false
+    });
+}
+
+// Load initial layer
+function loadLayer(layerId, date) {
+    showLoading();
+    
+    if (currentLayer) {
+        map.removeLayer(currentLayer);
+    }
+    
+    currentLayer = createGIBSLayer(layerId, date);
+    currentLayer.addTo(map);
+    
+    currentLayer.on('load', hideLoading);
+    currentLayer.on('tileerror', hideLoading);
+    
+    currentLayerId = layerId;
+    currentDate = date;
+    
+    logToTerminal('info', `Loaded layer: ${layerId} for ${date}`);
+}
+
+// Initial load
+loadLayer(currentLayerId, currentDate);
+
+// Layer selection
+document.querySelectorAll('.layer-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        const layerId = this.dataset.layer;
+        loadLayer(layerId, currentDate);
+    });
+});
+
+// Set first layer as active
+document.querySelector('.layer-item').classList.add('active');
+
+// Date change
+document.getElementById('date-input').addEventListener('change', function() {
+    const newDate = this.value;
+    loadLayer(currentLayerId, newDate);
+});
+
+// Mouse move coordinate display
+map.on('mousemove', function(e) {
+    const lat = e.latlng.lat.toFixed(4);
+    const lon = e.latlng.lng.toFixed(4);
+    document.getElementById('coord-display').textContent = `Lat: ${lat}°, Lon: ${lon}°`;
+});
+
+// Reset view
+document.getElementById('reset-view').addEventListener('click', function() {
+    map.setView([0, 0], 2);
+    logToTerminal('info', 'View reset to default position');
+});
+
+// Save configuration
+document.getElementById('save-config').addEventListener('click', async function() {
+    const center = map.getCenter();
+    const config = {
+        activeLayers: [currentLayerId],
+        centerLat: center.lat,
+        centerLon: center.lng,
+        zoomLevel: map.getZoom(),
+        currentDate: currentDate,
+        projection: 'EPSG:4326'
+    };
+    
+    try {
+        const response = await fetch('/gibs/api/config/save/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(config)
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            logToTerminal('success', 'Configuration saved successfully');
+        } else {
+            logToTerminal('error', 'Failed to save configuration');
+        }
+    } catch (error) {
+        logToTerminal('error', `Error: ${error.message}`);
+    }
+});
+
+// Layer search
+document.getElementById('layer-search').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.layer-item').forEach(item => {
+        const title = item.querySelector('.layer-title').textContent.toLowerCase();
+        if (title.includes(searchTerm)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Loading overlay
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Terminal logging function
+function logToTerminal(type, message) {
+    const event = new CustomEvent('terminalLog', {
+        detail: { type, message }
+    });
+    window.dispatchEvent(event);
+}
+
+// Load saved config on page load
+async function loadSavedConfig() {
+    try {
+        const response = await fetch('/gibs/api/config/get/');
+        const data = await response.json();
+        
+        if (data.status !== 'no_config') {
+            map.setView([data.centerLat, data.centerLon], data.zoomLevel);
+            
+            if (data.currentDate) {
+                document.getElementById('date-input').value = data.currentDate;
+                currentDate = data.currentDate;
+            }
+            
+            if (data.activeLayers && data.activeLayers.length > 0) {
+                const layerId = data.activeLayers[0];
+                const layerItem = document.querySelector(`[data-layer="${layerId}"]`);
+                if (layerItem) {
+                    layerItem.click();
+                }
+            }
+            
+            logToTerminal('success', 'Loaded saved configuration');
+        }
+    } catch (error) {
+        console.log('No saved config found');
+    }
+}
+
+loadSavedConfig();
+</script>
+{% endblock %}
