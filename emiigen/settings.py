@@ -13,7 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']
+
+# Update ALLOWED_HOSTS for Render
+ALLOWED_HOSTS = [
+    'emiigen.onrender.com',
+    '*.onrender.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 # -------------------------
 # NASA API
@@ -40,7 +47,7 @@ INSTALLED_APPS = [
 # -------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -57,7 +64,7 @@ ROOT_URLCONF = 'emiigen.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,7 +85,7 @@ WSGI_APPLICATION = 'emiigen.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Local DB file
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -101,14 +108,21 @@ USE_I18N = True
 USE_TZ = True
 
 # -------------------------
-# STATIC FILES
+# STATIC FILES (UPDATED)
 # -------------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise static files storage
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Use STORAGES instead of STATICFILES_STORAGE (Django 4.2+)
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # -------------------------
 # MEDIA FILES
@@ -119,11 +133,28 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # -------------------------
 # CELERY CONFIGURATION
 # -------------------------
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', '')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', '')
 CELERY_TIMEZONE = 'UTC'
 
 # -------------------------
 # DEFAULT PRIMARY KEY
 # -------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# -------------------------
+# LOGGING (for debugging on Render)
+# -------------------------
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
