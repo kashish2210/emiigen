@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.db import models
 from datetime import datetime, timedelta
 import json
 
@@ -130,30 +131,44 @@ def api_get_layer_info(request, layer_id):
 
 @require_http_methods(["GET"])
 def api_search_layers(request):
-    """API endpoint to search layers"""
+    """API endpoint to search layers - returns ALL layers by default"""
     query = request.GET.get('q', '')
     category = request.GET.get('category', '')
+    limit = request.GET.get('limit', None)  # No default limit
     
-    layers = GIBSLayer.objects.all()
+    layers = GIBSLayer.objects.all().order_by('category', 'title')
     
     if query:
         layers = layers.filter(
             models.Q(title__icontains=query) |
-            models.Q(description__icontains=query)
+            models.Q(description__icontains=query) |
+            models.Q(layer_id__icontains=query)
         )
     
-    if category:
+    if category and category != 'all':
         layers = layers.filter(category=category)
     
-    layers = layers[:50]  # Limit results
+    total_count = layers.count()
+    
+    # Only apply limit if specified
+    if limit:
+        layers = layers[:int(limit)]
     
     data = [{
         'id': layer.layer_id,
         'title': layer.title,
-        'category': layer.category,
+        'category': layer.category or 'Other',
+        'description': layer.description[:100] if layer.description else '',
+        'format': layer.format_type or 'jpg',
+        'startDate': layer.start_date.isoformat() if layer.start_date else None,
+        'endDate': layer.end_date.isoformat() if layer.end_date else None,
     } for layer in layers]
     
-    return JsonResponse({'layers': data})
+    return JsonResponse({
+        'layers': data, 
+        'total': total_count,
+        'returned': len(data)
+    })
 
 
 @require_http_methods(["POST"])
@@ -210,4 +225,3 @@ def api_get_config(request):
         return JsonResponse(data)
     except UserLayerConfig.DoesNotExist:
         return JsonResponse({'status': 'no_config'})
-
