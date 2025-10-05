@@ -6,265 +6,701 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <style>
-.explorer-container {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 200px);
-    gap: 20px;
-}
-
-.explorer-header {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 20px;
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.title-section h1 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 5px;
-    background: linear-gradient(135deg, var(--soft-yellow), var(--nasa-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.title-section p {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.controls-section {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.date-picker {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
-}
-
-.date-picker label {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.date-picker input {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--glass-border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    color: var(--star-white);
-    font-size: 14px;
-}
-
-.btn {
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    color: var(--star-white);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--soft-yellow);
-    transform: translateY(-2px);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--nasa-blue), var(--nebula-purple));
-    border-color: var(--nasa-blue);
-}
-
-.map-viewer {
-    flex: 1;
-    display: flex;
-    gap: 20px;
-    min-height: 0;
-}
-
-.layers-panel {
-    width: 300px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.panel-header {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--soft-yellow);
-    margin-bottom: 10px;
-}
-
-.layer-search {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 10px;
-    color: var(--star-white);
-    font-size: 14px;
-}
-
-.layer-search:focus {
-    outline: none;
-    border-color: var(--soft-yellow);
-}
-
-.layer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.layer-item {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.layer-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--soft-yellow);
-}
-
-.layer-item.active {
-    background: rgba(11, 61, 145, 0.3);
-    border-color: var(--nasa-blue);
-}
-
-.layer-title {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 4px;
-}
-
-.layer-category {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.map-container {
-    flex: 1;
-    position: relative;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-#map {
-    width: 100%;
-    height: 100%;
-}
-
-.map-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.coord-display {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
-    font-size: 12px;
-    font-family: 'Courier New', monospace;
-    color: var(--terminal-green);
-}
-
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top-color: var(--soft-yellow);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-@media (max-width: 768px) {
-    .explorer-container {
-        height: auto;
-    }
-    
-    .map-viewer {
-        flex-direction: column;
-        height: auto;
-    }
-    
-    .layers-panel {
-        width: 100%;
-        max-height: 300px;
-    }
-    
-    .map-container {
-        height: 500px;
-    }
-}
-</style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --soft-yellow: #fbbf24;
+            --nasa-blue: #0b3d91;
+            --nebula-purple: #6b21a8;
+            --star-white: #ffffff;
+            --terminal-green: #4ade80;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--star-white);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .explorer-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+            gap: 20px;
+        }
+        
+        .explorer-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .title-section h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, var(--soft-yellow), var(--nasa-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .title-section p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .controls-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .date-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .date-picker label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .date-picker input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: var(--star-white);
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--star-white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--soft-yellow);
+            transform: translateY(-2px);
+        }
+        
+        .btn-animate {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: none;
+            color: #0f172a;
+            display: none;
+        }
+        
+        .btn-animate.visible {
+            display: flex;
+        }
+        
+        .btn-animate:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+        }
+        
+        .map-viewer {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            min-height: 0;
+        }
+        
+        .layers-panel {
+            width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--soft-yellow);
+        }
+        
+        .layer-count {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        
+        .layer-search {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--star-white);
+            font-size: 14px;
+        }
+        
+        .layer-search:focus {
+            outline: none;
+            border-color: var(--soft-yellow);
+        }
+        
+        .category-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        .category-filter::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .category-filter::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .category-btn {
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .category-btn:hover, .category-btn.active {
+            background: rgba(11, 61, 145, 0.3);
+            border-color: var(--nasa-blue);
+            color: var(--star-white);
+        }
+        
+        .layer-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+        
+        .layer-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .layer-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        .layer-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .layer-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--soft-yellow);
+            transform: translateX(4px);
+        }
+        
+        .layer-item.active {
+            background: rgba(11, 61, 145, 0.4);
+            border-color: var(--nasa-blue);
+            box-shadow: 0 0 20px rgba(11, 61, 145, 0.3);
+        }
+        
+        .layer-item.active::before {
+            content: '✓';
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            color: var(--terminal-green);
+            font-weight: bold;
+        }
+        
+        .layer-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            padding-right: 20px;
+        }
+        
+        .layer-category {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .layer-opacity {
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .layer-item.active .layer-opacity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .opacity-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            min-width: 30px;
+        }
+        
+        .opacity-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .map-container {
+            flex: 1;
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .coord-display {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: var(--terminal-green);
+        }
+        
+        .active-layers-display {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            font-size: 11px;
+            max-width: 200px;
+        }
+        
+        .active-layers-title {
+            color: var(--soft-yellow);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .active-layer-item {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 2px 0;
+            font-size: 10px;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--soft-yellow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Animation Modal Styles */
+        .animation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .animation-modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(251, 191, 36, 0.2);
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .progress-container.active {
+            display: block;
+        }
+        
+        .progress-bar-bg {
+            background: rgba(0, 0, 0, 0.3);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-status {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        
+        .btn-start {
+            flex: 2;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            font-weight: 600;
+        }
+        
+        .btn-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+        
+        /* Animation Player Styles */
+        .animation-player {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            width: 700px;
+            max-width: 90%;
+            z-index: 2500;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .animation-player.active {
+            display: block;
+        }
+        
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .play-btn {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+        }
+        
+        .slider-container {
+            flex: 1;
+        }
+        
+        .animation-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .animation-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #fbbf24;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+        }
+        
+        .slider-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        
+        .frame-counter {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: monospace;
+        }
+        
+        .frame-date {
+            font-size: 12px;
+            color: #fbbf24;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        
+        .player-settings {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .speed-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .speed-select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .close-player-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .close-player-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .player-hint {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .explorer-container {
+                height: auto;
+            }
+            
+            .map-viewer {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .layers-panel {
+                width: 100%;
+                max-height: 400px;
+            }
+            
+            .map-container {
+                height: 500px;
+            }
+            
+            .animation-player {
+                width: 95%;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -279,7 +715,7 @@
             <div class="controls-section">
                 <div class="date-picker">
                     <label for="date-input">Date:</label>
-                    <input type="date" id="date-input" value="{{ default_date|date:'Y-m-d' }}">
+                    <input type="date" id="date-input" value="" min="2000-01-01">
                 </div>
                 
                 <button class="btn" id="reset-view">
@@ -290,13 +726,20 @@
                     Reset View
                 </button>
                 
-                <button class="btn btn-primary" id="save-config">
+                <button class="btn" id="clear-layers">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                        <polyline points="17 21 17 13 7 13 7 21"/>
-                        <polyline points="7 3 7 8 15 8"/>
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
-                    Save Config
+                    Clear All
+                </button>
+                
+                <button class="btn btn-animate" id="animation-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10 8 16 12 10 16"></polygon>
+                    </svg>
+                    Animate
                 </button>
             </div>
         </div>
@@ -304,35 +747,19 @@
     
     <div class="map-viewer">
         <div class="layers-panel">
-            <div class="panel-header">Available Layers</div>
+            <div class="panel-header">
+                <div class="panel-title">Layers</div>
+                <div class="layer-count" id="layer-count">Loading...</div>
+            </div>
             
             <input type="text" class="layer-search" id="layer-search" placeholder="Search layers...">
             
+            <div class="category-filter" id="category-filter">
+                <button class="category-btn active" data-category="all">All</button>
+            </div>
+            
             <div class="layer-list" id="layer-list">
-                <div class="layer-item" data-layer="VIIRS_SNPP_CorrectedReflectance_TrueColor">
-                    <div class="layer-title">VIIRS True Color</div>
-                    <div class="layer-category">Corrected Reflectance</div>
-                </div>
-                
-                <div class="layer-item" data-layer="MODIS_Terra_CorrectedReflectance_TrueColor">
-                    <div class="layer-title">MODIS Terra True Color</div>
-                    <div class="layer-category">Corrected Reflectance</div>
-                </div>
-                
-                <div class="layer-item" data-layer="MODIS_Aqua_CorrectedReflectance_TrueColor">
-                    <div class="layer-title">MODIS Aqua True Color</div>
-                    <div class="layer-category">Corrected Reflectance</div>
-                </div>
-                
-                <div class="layer-item" data-layer="VIIRS_NOAA20_CorrectedReflectance_TrueColor">
-                    <div class="layer-title">VIIRS NOAA-20 True Color</div>
-                    <div class="layer-category">Corrected Reflectance</div>
-                </div>
-                
-                <div class="layer-item" data-layer="BlueMarble_NextGeneration">
-                    <div class="layer-title">Blue Marble</div>
-                    <div class="layer-category">Reference</div>
-                </div>
+                <div class="no-results">Loading layers...</div>
             </div>
         </div>
         
@@ -343,12 +770,99 @@
                 <div class="coord-display" id="coord-display">
                     Lat: 0.0000°, Lon: 0.0000°
                 </div>
+                <div class="active-layers-display" id="active-layers-display" style="display: none;">
+                    <div class="active-layers-title">Active Layers</div>
+                    <div id="active-layers-list"></div>
+                </div>
             </div>
             
-            <div class="loading-overlay" id="loading-overlay" style="display: none;">
+            <div class="loading-overlay" id="loading-overlay">
                 <div class="loading-spinner"></div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Animation Modal -->
+<div class="animation-modal" id="animation-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create Time-Lapse Animation</h2>
+            <p>Select date range to capture map frames</p>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">From Date</label>
+            <input type="date" id="anim-start-date" class="form-input">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">To Date</label>
+            <input type="date" id="anim-end-date" class="form-input">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Interval (Days)</label>
+            <select id="anim-interval" class="form-select">
+                <option value="1">Every Day</option>
+                <option value="3" selected>Every 3 Days</option>
+                <option value="7">Every Week</option>
+                <option value="15">Every 15 Days</option>
+                <option value="30">Every Month</option>
+            </select>
+        </div>
+        
+        <div class="progress-container" id="anim-progress">
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="anim-progress-bar"></div>
+            </div>
+            <p class="progress-status" id="anim-status">Preparing...</p>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancel" id="cancel-animation">Cancel</button>
+            <button class="btn-modal btn-start" id="start-animation">Start Capture</button>
+        </div>
+    </div>
+</div>
+
+<!-- Animation Player -->
+<div class="animation-player" id="animation-player">
+    <div class="player-controls">
+        <button class="play-btn" id="play-pause-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #0f172a;">
+                <polygon points="5 3 19 12 5 21"></polygon>
+            </svg>
+        </button>
+        
+        <div class="slider-container">
+            <input type="range" class="animation-slider" id="animation-slider" min="0" max="100" value="0">
+            <div class="slider-info">
+                <span class="frame-counter" id="frame-counter">0/0</span>
+                <span class="frame-date" id="current-frame-date">----</span>
+            </div>
+        </div>
+        
+        <div class="player-settings">
+            <label class="speed-label">Speed:</label>
+            <select class="speed-select" id="anim-speed">
+                <option value="100">Fast</option>
+                <option value="200" selected>Normal</option>
+                <option value="500">Slow</option>
+                <option value="1000">Very Slow</option>
+            </select>
+        </div>
+        
+        <button class="close-player-btn" id="close-player">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+    
+    <div class="player-hint">
+        Use slider to scrub through frames • Click play to start animation
     </div>
 </div>
 {% endblock %}
@@ -356,198 +870,651 @@
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-// Initialize map
-const map = L.map('map', {
-    center: [0, 0],
-    zoom: 2,
-    minZoom: 1,
-    maxZoom: 9
-});
-
-// Current active layer
-let currentLayer = null;
-let currentLayerId = 'VIIRS_SNPP_CorrectedReflectance_TrueColor';
-let currentDate = document.getElementById('date-input').value;
-
-// GIBS tile layer function
-function createGIBSLayer(layerId, date) {
-    const template = `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/${layerId}/default/${date}/250m/{z}/{y}/{x}.jpg`;
+    // Set current date (yesterday to ensure tiles are available)
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateStr = yesterday.toISOString().split('T')[0];
+    document.getElementById('date-input').value = dateStr;
+    document.getElementById('date-input').max = new Date().toISOString().split('T')[0];
     
-    return L.tileLayer(template, {
-        attribution: 'NASA EOSDIS GIBS',
-        bounds: [[-85.0511287776, -179.999], [85.0511287776, 179.999]],
+    // Initialize map
+    const map = L.map('map', {
+        center: [20, 0],
+        zoom: 2,
         minZoom: 1,
-        maxZoom: 9,
-        tileSize: 256,
-        noWrap: false
+        maxZoom: 9
     });
-}
-
-// Load initial layer
-function loadLayer(layerId, date) {
-    showLoading();
     
-    if (currentLayer) {
-        map.removeLayer(currentLayer);
+    console.log('✓ Map initialized. Zoom range: 1-9');
+    
+    // State management
+    let activeLayers = [];
+    let currentDate = dateStr;
+    let allLayers = [];
+    let filteredLayers = [];
+    
+    // Animation state
+    let animationFrames = [];
+    let currentFrameIndex = 0;
+    let isAnimating = false;
+    let animationInterval = null;
+    
+    // Fetch layers from backend
+    async function fetchLayers() {
+        showLoading(true);
+        try {
+            const apiPath = window.location.pathname.includes('/gibs/') 
+                ? '/gibs/api/search/' 
+                : '/api/search/';
+            const response = await fetch(apiPath);
+            const data = await response.json();
+            allLayers = data.layers || [];
+            filteredLayers = allLayers;
+            
+            allLayers.sort((a, b) => {
+                const aPriority = getPriority(a.id);
+                const bPriority = getPriority(b.id);
+                return bPriority - aPriority;
+            });
+            
+            console.log(`✓ Loaded ${allLayers.length} layers from database`);
+            
+            document.getElementById('layer-count').textContent = `${allLayers.length} total`;
+            document.getElementById('layer-search').placeholder = `Search ${allLayers.length} layers...`;
+            
+            renderCategories(allLayers);
+            renderLayers(filteredLayers);
+        } catch (error) {
+            console.error('Failed to load layers:', error);
+            document.getElementById('layer-list').innerHTML = 
+                '<div class="no-results">Failed to load layers. Please refresh.</div>';
+        } finally {
+            showLoading(false);
+        }
     }
     
-    currentLayer = createGIBSLayer(layerId, date);
-    currentLayer.addTo(map);
+    function getPriority(layerId) {
+        if (layerId.includes('CorrectedReflectance_TrueColor')) return 100;
+        if (layerId.includes('BlueMarble')) return 90;
+        if (layerId.includes('Thermal_Anomalies')) return 80;
+        if (layerId.includes('Coastlines')) return 70;
+        if (layerId.includes('Land_Surface_Temp')) return 60;
+        if (layerId.includes('Snow_Cover')) return 50;
+        return 0;
+    }
     
-    currentLayer.on('load', hideLoading);
-    currentLayer.on('tileerror', hideLoading);
-    
-    currentLayerId = layerId;
-    currentDate = date;
-    
-    logToTerminal('info', `Loaded layer: ${layerId} for ${date}`);
-}
-
-// Initial load
-loadLayer(currentLayerId, currentDate);
-
-// Layer selection
-document.querySelectorAll('.layer-item').forEach(item => {
-    item.addEventListener('click', function() {
-        document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
+    function renderCategories(layers) {
+        const categories = [...new Set(layers.map(l => l.category).filter(Boolean))];
+        const filterDiv = document.getElementById('category-filter');
         
-        const layerId = this.dataset.layer;
-        loadLayer(layerId, currentDate);
-    });
-});
-
-// Set first layer as active
-document.querySelector('.layer-item').classList.add('active');
-
-// Date change
-document.getElementById('date-input').addEventListener('change', function() {
-    const newDate = this.value;
-    loadLayer(currentLayerId, newDate);
-});
-
-// Mouse move coordinate display
-map.on('mousemove', function(e) {
-    const lat = e.latlng.lat.toFixed(4);
-    const lon = e.latlng.lng.toFixed(4);
-    document.getElementById('coord-display').textContent = `Lat: ${lat}°, Lon: ${lon}°`;
-});
-
-// Reset view
-document.getElementById('reset-view').addEventListener('click', function() {
-    map.setView([0, 0], 2);
-    logToTerminal('info', 'View reset to default position');
-});
-
-// Save configuration
-document.getElementById('save-config').addEventListener('click', async function() {
-    const center = map.getCenter();
-    const config = {
-        activeLayers: [currentLayerId],
-        centerLat: center.lat,
-        centerLon: center.lng,
-        zoomLevel: map.getZoom(),
-        currentDate: currentDate,
-        projection: 'EPSG:4326'
-    };
+        const allButton = filterDiv.querySelector('[data-category="all"]');
+        filterDiv.innerHTML = '';
+        filterDiv.appendChild(allButton);
+        
+        categories.sort().forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.dataset.category = cat;
+            btn.textContent = cat;
+            btn.onclick = () => filterByCategory(cat);
+            filterDiv.appendChild(btn);
+        });
+    }
     
-    try {
-        const response = await fetch('/gibs/api/config/save/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify(config)
+    function filterByCategory(category) {
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === category);
         });
         
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            logToTerminal('success', 'Configuration saved successfully');
+        if (category === 'all') {
+            filteredLayers = allLayers;
         } else {
-            logToTerminal('error', 'Failed to save configuration');
+            filteredLayers = allLayers.filter(l => l.category === category);
         }
-    } catch (error) {
-        logToTerminal('error', `Error: ${error.message}`);
-    }
-});
-
-// Layer search
-document.getElementById('layer-search').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    document.querySelectorAll('.layer-item').forEach(item => {
-        const title = item.querySelector('.layer-title').textContent.toLowerCase();
-        if (title.includes(searchTerm)) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-});
-
-// Loading overlay
-function showLoading() {
-    document.getElementById('loading-overlay').style.display = 'flex';
-}
-
-function hideLoading() {
-    document.getElementById('loading-overlay').style.display = 'none';
-}
-
-// Get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-// Terminal logging function
-function logToTerminal(type, message) {
-    const event = new CustomEvent('terminalLog', {
-        detail: { type, message }
-    });
-    window.dispatchEvent(event);
-}
-
-// Load saved config on page load
-async function loadSavedConfig() {
-    try {
-        const response = await fetch('/gibs/api/config/get/');
-        const data = await response.json();
         
-        if (data.status !== 'no_config') {
-            map.setView([data.centerLat, data.centerLon], data.zoomLevel);
+        document.getElementById('layer-count').textContent = 
+            `${filteredLayers.length} of ${allLayers.length}`;
+        
+        renderLayers(filteredLayers);
+    }
+    
+    function renderLayers(layers) {
+        const listDiv = document.getElementById('layer-list');
+        
+        if (layers.length === 0) {
+            listDiv.innerHTML = '<div class="no-results">No layers found</div>';
+            return;
+        }
+        
+        listDiv.innerHTML = '';
+        
+        layers.forEach(layer => {
+            const item = document.createElement('div');
+            item.className = 'layer-item';
+            item.dataset.layerId = layer.id;
+            item.dataset.format = layer.format || 'jpg';
+            item.dataset.startDate = layer.startDate || '';
+            item.dataset.endDate = layer.endDate || '';
             
-            if (data.currentDate) {
-                document.getElementById('date-input').value = data.currentDate;
-                currentDate = data.currentDate;
+            const isActive = activeLayers.find(l => l.id === layer.id);
+            if (isActive) {
+                item.classList.add('active');
             }
             
-            if (data.activeLayers && data.activeLayers.length > 0) {
-                const layerId = data.activeLayers[0];
-                const layerItem = document.querySelector(`[data-layer="${layerId}"]`);
-                if (layerItem) {
-                    layerItem.click();
+            item.innerHTML = `
+                <div class="layer-title">${layer.title}</div>
+                <div class="layer-category">${layer.category || 'Other'}</div>
+                <div class="layer-opacity">
+                    <span class="opacity-label">100%</span>
+                    <input type="range" class="opacity-slider" min="0" max="100" value="100">
+                </div>
+            `;
+            
+            item.onclick = (e) => {
+                if (!e.target.classList.contains('opacity-slider')) {
+                    toggleLayer(layer.id, layer.title, layer.format);
                 }
-            }
+            };
             
-            logToTerminal('success', 'Loaded saved configuration');
-        }
-    } catch (error) {
-        console.log('No saved config found');
+            const slider = item.querySelector('.opacity-slider');
+            slider.oninput = (e) => {
+                e.stopPropagation();
+                const value = e.target.value;
+                item.querySelector('.opacity-label').textContent = `${value}%`;
+                updateLayerOpacity(layer.id, value);
+            };
+            
+            listDiv.appendChild(item);
+        });
     }
-}
-
-loadSavedConfig();
+    
+    function createGIBSLayer(layerId, date, opacity = 1.0, format = null) {
+        if (!format) {
+            const isPNG = layerId.includes('Fires') || layerId.includes('Thermal') || 
+                          layerId.includes('Snow') || layerId.includes('Ice') ||
+                          layerId.includes('Aerosol') || layerId.includes('Cloud') ||
+                          layerId.includes('Mask');
+            format = isPNG ? 'png' : 'jpg';
+        }
+        
+        const template = `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/${layerId}/default/${date}/250m/{z}/{y}/{x}.${format}`;
+        
+        return L.tileLayer(template, {
+            attribution: '© NASA EOSDIS GIBS',
+            tileSize: 256,
+            tms: false,
+            noWrap: false,
+            continuousWorld: true,
+            opacity: opacity,
+            maxNativeZoom: 9,
+            minZoom: 1,
+            maxZoom: 9
+        });
+    }
+    
+    function toggleLayer(layerId, title, format) {
+        const item = document.querySelector(`[data-layer-id="${layerId}"]`);
+        const existingLayer = activeLayers.find(l => l.id === layerId);
+        
+        if (existingLayer) {
+            map.removeLayer(existingLayer.layer);
+            activeLayers = activeLayers.filter(l => l.id !== layerId);
+            item.classList.remove('active');
+            console.log(`✓ Removed: ${title}`);
+        } else {
+            const layerFormat = format || item.dataset.format || 'jpg';
+            
+            showLoading(true);
+            const layer = createGIBSLayer(layerId, currentDate, 1.0, layerFormat);
+            
+            let tilesLoaded = 0;
+            let tilesErrored = 0;
+            
+            layer.on('tileload', () => {
+                tilesLoaded++;
+                if (tilesLoaded === 1) {
+                    console.log(`✓ Tiles loading for: ${title}`);
+                    showLoading(false);
+                }
+            });
+            
+            layer.on('tileerror', () => {
+                tilesErrored++;
+                if (tilesErrored > 15 && tilesLoaded === 0) {
+                    console.warn(`⚠ Layer "${title}" unavailable for ${currentDate}`);
+                    showLoading(false);
+                    
+                    setTimeout(() => {
+                        if (tilesLoaded === 0) {
+                            map.removeLayer(layer);
+                            item.classList.remove('active');
+                            activeLayers = activeLayers.filter(l => l.id !== layerId);
+                        }
+                    }, 2000);
+                }
+            });
+            
+            setTimeout(() => showLoading(false), 3000);
+            
+            layer.addTo(map);
+            activeLayers.push({id: layerId, layer: layer, title: title});
+            item.classList.add('active');
+            console.log(`Added: ${title}`);
+        }
+        
+        updateActiveLayersDisplay();
+        updateAnimationButton();
+    }
+    
+    function updateAnimationButton() {
+        const animBtn = document.getElementById('animation-btn');
+        if (activeLayers.length > 0) {
+            animBtn.classList.add('visible');
+        } else {
+            animBtn.classList.remove('visible');
+        }
+    }
+    
+    function updateLayerOpacity(layerId, opacity) {
+        const activeLayer = activeLayers.find(l => l.id === layerId);
+        if (activeLayer) {
+            activeLayer.layer.setOpacity(opacity / 100);
+        }
+    }
+    
+    function updateAllLayersDate(date) {
+        if (activeLayers.length === 0) return;
+        
+        showLoading(true);
+        console.log(`Updating ${activeLayers.length} layers to date: ${date}`);
+        
+        activeLayers.forEach(({id, title}) => {
+            const oldLayer = activeLayers.find(l => l.id === id).layer;
+            const opacity = oldLayer.options.opacity;
+            const item = document.querySelector(`[data-layer-id="${id}"]`);
+            const format = item ? item.dataset.format : null;
+            
+            map.removeLayer(oldLayer);
+            
+            const newLayer = createGIBSLayer(id, date, opacity, format);
+            newLayer.addTo(map);
+            
+            activeLayers = activeLayers.map(l => 
+                l.id === id ? {...l, layer: newLayer} : l
+            );
+        });
+        
+        currentDate = date;
+        setTimeout(() => showLoading(false), 2000);
+    }
+    
+    function updateActiveLayersDisplay() {
+        const display = document.getElementById('active-layers-display');
+        const list = document.getElementById('active-layers-list');
+        
+        if (activeLayers.length === 0) {
+            display.style.display = 'none';
+            return;
+        }
+        
+        display.style.display = 'block';
+        list.innerHTML = activeLayers.map(l => 
+            `<div class="active-layer-item">• ${l.title.substring(0, 30)}${l.title.length > 30 ? '...' : ''}</div>`
+        ).join('');
+    }
+    
+    function showLoading(show) {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.classList.toggle('active', show);
+    }
+    
+    // Event listeners
+    document.getElementById('date-input').addEventListener('change', function() {
+        updateAllLayersDate(this.value);
+    });
+    
+    document.getElementById('reset-view').addEventListener('click', function() {
+        map.setView([20, 0], 2);
+    });
+    
+    document.getElementById('clear-layers').addEventListener('click', function() {
+        activeLayers.forEach(({layer}) => map.removeLayer(layer));
+        activeLayers = [];
+        document.querySelectorAll('.layer-item.active').forEach(item => {
+            item.classList.remove('active');
+        });
+        updateActiveLayersDisplay();
+        updateAnimationButton();
+    });
+    
+    map.on('mousemove', function(e) {
+        const lat = e.latlng.lat.toFixed(4);
+        const lon = e.latlng.lng.toFixed(4);
+        document.getElementById('coord-display').textContent = `Lat: ${lat}°, Lon: ${lon}°`;
+    });
+    
+    document.getElementById('layer-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        
+        if (searchTerm === '') {
+            const activeCategory = document.querySelector('.category-btn.active');
+            filterByCategory(activeCategory.dataset.category);
+            return;
+        }
+        
+        const filtered = filteredLayers.filter(layer => 
+            layer.title.toLowerCase().includes(searchTerm) ||
+            (layer.description && layer.description.toLowerCase().includes(searchTerm)) ||
+            layer.id.toLowerCase().includes(searchTerm)
+        );
+        
+        document.getElementById('layer-count').textContent = 
+            `${filtered.length} of ${allLayers.length}`;
+        
+        renderLayers(filtered);
+    });
+    
+    // Animation functionality
+    document.getElementById('animation-btn').addEventListener('click', function() {
+        if (activeLayers.length === 0) {
+            alert('Please select at least one layer to animate');
+            return;
+        }
+        
+        const modal = document.getElementById('animation-modal');
+        modal.classList.add('active');
+        
+        // Set default dates (last 30 days)
+        const endDate = new Date(currentDate);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 30);
+        
+        document.getElementById('anim-start-date').value = startDate.toISOString().split('T')[0];
+        document.getElementById('anim-end-date').value = endDate.toISOString().split('T')[0];
+        document.getElementById('anim-start-date').max = new Date().toISOString().split('T')[0];
+        document.getElementById('anim-end-date').max = new Date().toISOString().split('T')[0];
+    });
+    
+    document.getElementById('cancel-animation').addEventListener('click', function() {
+        document.getElementById('animation-modal').classList.remove('active');
+    });
+    
+    document.getElementById('start-animation').addEventListener('click', async function() {
+        const startDateStr = document.getElementById('anim-start-date').value;
+        const endDateStr = document.getElementById('anim-end-date').value;
+        const interval = parseInt(document.getElementById('anim-interval').value);
+        
+        if (!startDateStr || !endDateStr) {
+            alert('Please select both start and end dates');
+            return;
+        }
+        
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        
+        if (startDate >= endDate) {
+            alert('End date must be after start date');
+            return;
+        }
+        
+        // Generate date array
+        const dates = [];
+        let current = new Date(startDate);
+        while (current <= endDate) {
+            dates.push(current.toISOString().split('T')[0]);
+            current.setDate(current.getDate() + interval);
+        }
+        
+        if (dates.length > 100) {
+            alert(`This will create ${dates.length} frames. Please use a larger interval or shorter date range (max 100 frames).`);
+            return;
+        }
+        
+        console.log(`Generating animation with ${dates.length} frames`);
+        
+        // Show progress
+        const progressEl = document.getElementById('anim-progress');
+        progressEl.classList.add('active');
+        this.disabled = true;
+        
+        animationFrames = [];
+        
+        // Capture frames
+        for (let i = 0; i < dates.length; i++) {
+            const date = dates[i];
+            const progress = ((i + 1) / dates.length * 100).toFixed(0);
+            
+            document.getElementById('anim-progress-bar').style.width = progress + '%';
+            document.getElementById('anim-status').textContent = `Capturing ${date} (${i + 1}/${dates.length})`;
+            
+            await captureMapFrame(date);
+            await new Promise(resolve => setTimeout(resolve, 800));
+        }
+        
+        // Hide modal and show player
+        document.getElementById('animation-modal').classList.remove('active');
+        document.getElementById('animation-player').classList.add('active');
+        
+        const slider = document.getElementById('animation-slider');
+        slider.max = animationFrames.length - 1;
+        document.getElementById('frame-counter').textContent = `1/${animationFrames.length}`;
+        document.getElementById('current-frame-date').textContent = animationFrames[0].date;
+        
+        displayFrame(0);
+        
+        console.log('✓ Animation ready with', animationFrames.length, 'frames');
+        
+        // Reset
+        progressEl.classList.remove('active');
+        this.disabled = false;
+        document.getElementById('anim-progress-bar').style.width = '0%';
+    });
+    
+    async function captureMapFrame(date) {
+        return new Promise((resolve) => {
+            const layersToUpdate = [...activeLayers];
+            let updatedCount = 0;
+            
+            layersToUpdate.forEach(({id}) => {
+                const layer = activeLayers.find(l => l.id === id).layer;
+                const item = document.querySelector(`[data-layer-id="${id}"]`);
+                const format = item ? item.dataset.format : null;
+                const opacity = layer.options.opacity;
+                
+                map.removeLayer(layer);
+                
+                const newLayer = createGIBSLayer(id, date, opacity, format);
+                
+                newLayer.on('tileload', () => {
+                    updatedCount++;
+                });
+                
+                newLayer.addTo(map);
+                
+                activeLayers = activeLayers.map(l => 
+                    l.id === id ? {...l, layer: newLayer} : l
+                );
+            });
+            
+            currentDate = date;
+            
+            let tilesLoaded = 0;
+            const minTiles = 15;
+            let captureTimeout;
+            
+            const checkTilesInterval = setInterval(() => {
+                tilesLoaded = updatedCount;
+                
+                if (tilesLoaded >= minTiles) {
+                    clearInterval(checkTilesInterval);
+                    clearTimeout(captureTimeout);
+                    captureCurrentView(date, resolve);
+                }
+            }, 200);
+            
+            captureTimeout = setTimeout(() => {
+                clearInterval(checkTilesInterval);
+                console.warn(`Frame ${date} - capturing with ${tilesLoaded} tiles loaded`);
+                captureCurrentView(date, resolve);
+            }, 4000);
+        });
+    }
+    
+    function captureCurrentView(date, callback) {
+        setTimeout(() => {
+            const mapContainer = document.getElementById('map');
+            const mapBounds = mapContainer.getBoundingClientRect();
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = mapBounds.width;
+            canvas.height = mapBounds.height;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const tileContainers = mapContainer.querySelectorAll('.leaflet-tile-pane, .leaflet-overlay-pane');
+            const allTiles = [];
+            
+            tileContainers.forEach(container => {
+                const tiles = container.querySelectorAll('img.leaflet-tile');
+                tiles.forEach(tile => {
+                    if (tile.complete && tile.naturalWidth > 0 && !tile.src.includes('data:image')) {
+                        const tileRect = tile.getBoundingClientRect();
+                        const x = tileRect.left - mapBounds.left;
+                        const y = tileRect.top - mapBounds.top;
+                        
+                        allTiles.push({
+                            img: tile,
+                            x: x,
+                            y: y,
+                            opacity: parseFloat(window.getComputedStyle(tile).opacity) || 1
+                        });
+                    }
+                });
+            });
+            
+            console.log(`Capturing ${allTiles.length} tiles for ${date}`);
+            
+            allTiles.forEach(({img, x, y, opacity}) => {
+                try {
+                    ctx.globalAlpha = opacity;
+                    ctx.drawImage(img, x, y);
+                } catch(e) {
+                    console.warn('Could not draw tile:', e);
+                }
+            });
+            
+            ctx.globalAlpha = 1.0;
+            
+            const imageData = canvas.toDataURL('image/jpeg', 0.85);
+            
+            animationFrames.push({
+                date: date,
+                imageData: imageData
+            });
+            
+            callback();
+        }, 300);
+    }
+    
+    // Animation player controls
+    document.getElementById('play-pause-btn').addEventListener('click', function() {
+        if (isAnimating) {
+            pauseAnimation();
+        } else {
+            playAnimation();
+        }
+    });
+    
+    function playAnimation() {
+        isAnimating = true;
+        const btn = document.getElementById('play-pause-btn');
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #0f172a;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        
+        const speed = parseInt(document.getElementById('anim-speed').value);
+        
+        animationInterval = setInterval(() => {
+            currentFrameIndex = (currentFrameIndex + 1) % animationFrames.length;
+            displayFrame(currentFrameIndex);
+        }, speed);
+    }
+    
+    function pauseAnimation() {
+        isAnimating = false;
+        clearInterval(animationInterval);
+        const btn = document.getElementById('play-pause-btn');
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #0f172a;"><polygon points="5 3 19 12 5 21"></polygon></svg>';
+    }
+    
+    function displayFrame(index) {
+        if (!animationFrames[index]) return;
+        
+        const frame = animationFrames[index];
+        document.getElementById('animation-slider').value = index;
+        document.getElementById('frame-counter').textContent = `${index + 1}/${animationFrames.length}`;
+        document.getElementById('current-frame-date').textContent = frame.date;
+        
+        const mapContainer = document.querySelector('.map-container');
+        if (!mapContainer) return;
+        
+        let overlay = document.getElementById('animation-overlay');
+        
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'animation-overlay';
+            overlay.style.cssText = `
+                position: absolute; 
+                top: 0; 
+                left: 0; 
+                right: 0; 
+                bottom: 0; 
+                z-index: 1500; 
+                pointer-events: none;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            `;
+            mapContainer.appendChild(overlay);
+        }
+        
+        overlay.style.backgroundImage = `url(${frame.imageData})`;
+    }
+    
+    document.getElementById('animation-slider').addEventListener('input', function() {
+        const index = parseInt(this.value);
+        currentFrameIndex = index;
+        displayFrame(index);
+        
+        if (isAnimating) {
+            pauseAnimation();
+        }
+    });
+    
+    document.getElementById('close-player').addEventListener('click', function() {
+        pauseAnimation();
+        document.getElementById('animation-player').classList.remove('active');
+        
+        const overlay = document.getElementById('animation-overlay');
+        if (overlay) overlay.remove();
+        
+        animationFrames = [];
+        currentFrameIndex = 0;
+        
+        console.log('✓ Animation player closed');
+    });
+    
+    // Initialize
+    fetchLayers();
+    
+    // Load default layer after 1 second
+    setTimeout(() => {
+        const defaultLayerId = 'VIIRS_SNPP_CorrectedReflectance_TrueColor';
+        const defaultLayer = allLayers.find(l => l.id === defaultLayerId);
+        if (defaultLayer) {
+            toggleLayer(defaultLayerId, defaultLayer.title, defaultLayer.format);
+        }
+    }, 1000);
 </script>
 {% endblock %}

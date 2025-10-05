@@ -169,8 +169,11 @@ def api_image_by_date(request):
 
 @require_http_methods(["GET"])
 def api_coordinates(request):
-    """API endpoint for coordinate search"""
+    """API endpoint for coordinate search - UPDATED for RA/Dec"""
     query = request.GET.get('q', '').lower()
+    
+    if len(query) < 2:
+        return JsonResponse({'results': []})
     
     coordinates = CelestialCoordinate.objects.filter(
         name__icontains=query
@@ -181,8 +184,8 @@ def api_coordinates(request):
             {
                 'name': coord.name,
                 'type': coord.type,
-                'latitude': coord.latitude,
-                'longitude': coord.longitude,
+                'ra': coord.longitude,  # Using longitude as RA (0-360 degrees)
+                'dec': coord.latitude,  # Using latitude as Dec (-90 to +90 degrees)
                 'body': coord.body,
                 'description': coord.description
             }
@@ -191,6 +194,108 @@ def api_coordinates(request):
     }
     
     return JsonResponse(data)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def terminal_populate_coordinates(request):
+    """Terminal API endpoint to populate coordinates - UPDATED with RA/Dec"""
+    try:
+        # Updated coordinates with proper RA/Dec values
+        coordinates_data = [
+            # Galaxies (RA/Dec in degrees)
+            {"name": "Andromeda Galaxy", "type": "galaxy", "ra": 10.68, "dec": 41.27, "body": "Deep Sky"},
+            {"name": "Triangulum Galaxy", "type": "galaxy", "ra": 23.46, "dec": 30.66, "body": "Deep Sky"},
+            {"name": "Whirlpool Galaxy", "type": "galaxy", "ra": 202.47, "dec": 47.20, "body": "Deep Sky"},
+            {"name": "Sombrero Galaxy", "type": "galaxy", "ra": 189.99, "dec": -11.62, "body": "Deep Sky"},
+            
+            # Nebulae
+            {"name": "Orion Nebula", "type": "nebula", "ra": 83.82, "dec": -5.39, "body": "Deep Sky"},
+            {"name": "Crab Nebula", "type": "nebula", "ra": 83.63, "dec": 22.01, "body": "Deep Sky"},
+            {"name": "Eagle Nebula", "type": "nebula", "ra": 274.70, "dec": -13.80, "body": "Deep Sky"},
+            {"name": "Horsehead Nebula", "type": "nebula", "ra": 85.30, "dec": -2.46, "body": "Deep Sky"},
+            {"name": "Ring Nebula", "type": "nebula", "ra": 283.40, "dec": 33.03, "body": "Deep Sky"},
+            {"name": "Helix Nebula", "type": "nebula", "ra": 337.41, "dec": -20.84, "body": "Deep Sky"},
+            
+            # Star Clusters
+            {"name": "Pleiades", "type": "cluster", "ra": 56.75, "dec": 24.12, "body": "Deep Sky"},
+            {"name": "Hyades", "type": "cluster", "ra": 66.75, "dec": 15.87, "body": "Deep Sky"},
+            
+            # Stars
+            {"name": "Betelgeuse", "type": "star", "ra": 88.79, "dec": 7.41, "body": "Deep Sky"},
+            {"name": "Rigel", "type": "star", "ra": 78.63, "dec": -8.20, "body": "Deep Sky"},
+            {"name": "Sirius", "type": "star", "ra": 101.29, "dec": -16.72, "body": "Deep Sky"},
+            {"name": "Polaris", "type": "star", "ra": 37.95, "dec": 89.26, "body": "Deep Sky"},
+            
+            # Mars Features (using Mars-specific coordinates)
+            {"name": "Olympus Mons", "type": "volcano", "ra": 226.2, "dec": 18.65, "body": "Mars"},
+            {"name": "Valles Marineris", "type": "canyon", "ra": 290.0, "dec": -14.0, "body": "Mars"},
+            {"name": "Gale Crater", "type": "crater", "ra": 222.3, "dec": -5.4, "body": "Mars"},
+            {"name": "Hellas Planitia", "type": "basin", "ra": 70.0, "dec": -42.0, "body": "Mars"},
+            
+            # Moon Features (using lunar coordinates)
+            {"name": "Tycho Crater", "type": "crater", "ra": 348.68, "dec": -43.31, "body": "Moon"},
+            {"name": "Copernicus Crater", "type": "crater", "ra": 339.92, "dec": 9.62, "body": "Moon"},
+            {"name": "Mare Tranquillitatis", "type": "mare", "ra": 31.4, "dec": 8.5, "body": "Moon"},
+            {"name": "Mare Serenitatis", "type": "mare", "ra": 17.5, "dec": 28.0, "body": "Moon"},
+        ]
+        
+        created_count = 0
+        updated_count = 0
+        
+        for coord_data in coordinates_data:
+            coord, created = CelestialCoordinate.objects.update_or_create(
+                name=coord_data['name'],
+                defaults={
+                    'type': coord_data['type'],
+                    'longitude': coord_data['ra'],      # Store RA in longitude field
+                    'latitude': coord_data['dec'],      # Store Dec in latitude field
+                    'body': coord_data['body'],
+                    'description': f"{coord_data['type'].title()} - RA: {coord_data['ra']}°, Dec: {coord_data['dec']}°"
+                }
+            )
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+        
+        return JsonResponse({
+            'success': True,
+            'created': created_count,
+            'updated': updated_count,
+            'total': len(coordinates_data),
+            'message': f'Created {created_count} new coordinates, updated {updated_count} existing'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_http_methods(["GET"])
+def terminal_status(request):
+    """Terminal API endpoint to get status - UPDATED"""
+    try:
+        total_images = APODImage.objects.count()
+        latest = APODImage.objects.order_by('-date').first()
+        oldest = APODImage.objects.order_by('date').first()
+        
+        return JsonResponse({
+            'success': True,
+            'total_images': total_images,
+            'latest_date': latest.date.strftime('%Y-%m-%d') if latest else None,
+            'oldest_date': oldest.date.strftime('%Y-%m-%d') if oldest else None,
+            'total_coordinates': CelestialCoordinate.objects.count(),
+            'total_logs': SystemLog.objects.count()
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
 
 @require_http_methods(["GET"])
 def api_logs(request):
@@ -299,71 +404,7 @@ def terminal_backfill(request):
             'error': str(e)
         })
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def terminal_populate_coordinates(request):
-    """Terminal API endpoint to populate coordinates"""
-    try:
-        coordinates_data = [
-            {"name": "Tycho Crater", "type": "crater", "coordinates": [0.0, -43.3], "body": "Moon"},
-            {"name": "Olympus Mons", "type": "mountain", "coordinates": [18.65, 133.8], "body": "Mars"},
-            {"name": "Andromeda Galaxy", "type": "galaxy", "coordinates": [41.27, 121.17], "body": "Space"},
-            {"name": "Gale Crater", "type": "crater", "coordinates": [-5.4, 137.8], "body": "Mars"},
-            {"name": "Mare Tranquillitatis", "type": "other", "coordinates": [8.5, 31.4], "body": "Moon"},
-            {"name": "Valles Marineris", "type": "other", "coordinates": [-14.0, -59.2], "body": "Mars"},
-            {"name": "Orion Nebula", "type": "nebula", "coordinates": [-5.4, 83.8], "body": "Space"},
-            {"name": "Crab Nebula", "type": "nebula", "coordinates": [22.0, 83.6], "body": "Space"},
-            {"name": "Copernicus Crater", "type": "crater", "coordinates": [9.7, -20.1], "body": "Moon"},
-            {"name": "Eagle Nebula", "type": "nebula", "coordinates": [-13.8, 275.0], "body": "Space"},
-        ]
-        
-        created_count = 0
-        for coord_data in coordinates_data:
-            coord, created = CelestialCoordinate.objects.get_or_create(
-                name=coord_data['name'],
-                body=coord_data['body'],
-                defaults={
-                    'type': coord_data['type'],
-                    'latitude': coord_data['coordinates'][0],
-                    'longitude': coord_data['coordinates'][1],
-                    'description': f"{coord_data['type'].title()} located on {coord_data['body']}"
-                }
-            )
-            if created:
-                created_count += 1
-        
-        return JsonResponse({
-            'success': True,
-            'count': created_count,
-            'message': f'Created {created_count} new coordinates'
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
 
-@require_http_methods(["GET"])
-def terminal_status(request):
-    """Terminal API endpoint to get status"""
-    try:
-        total_images = APODImage.objects.count()
-        latest = APODImage.objects.order_by('-date').first()
-        oldest = APODImage.objects.order_by('date').first()
-        
-        return JsonResponse({
-            'success': True,
-            'total_images': total_images,
-            'latest_date': latest.date.strftime('%Y-%m-%d') if latest else None,
-            'oldest_date': oldest.date.strftime('%Y-%m-%d') if oldest else None,
-            'total_coordinates': CelestialCoordinate.objects.count(),
-            'total_logs': SystemLog.objects.count()
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
 
 def fetch_and_save_apod(date):
     """Fetch APOD from NASA API and save to database"""

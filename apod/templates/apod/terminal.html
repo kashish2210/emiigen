@@ -2,8 +2,12 @@
 
 {% block title %}Terminal - APOD Explorer{% endblock %}
 
-{% block extra_css %}
+{% block extra_js %}
+<script>
+    document.querySelector('footer')?.remove();
+</script>
 <style>
+
 .terminal-page {
     max-width: 1200px;
     margin: 0 auto;
